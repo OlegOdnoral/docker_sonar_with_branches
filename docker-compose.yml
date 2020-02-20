@@ -1,0 +1,40 @@
+version: '2'
+
+networks:
+  sonarnet:
+    driver: bridge
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - sonarnet
+    #volumes:
+      #- ./data/sonar_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+      - PGDATA=./qube_db
+  # For sonarqube would be nice to install community branch plugin
+  # https://github.com/mc1arke/sonarqube-community-branch-plugin/
+  # This plugin will add brunch support for community edition
+  # If you don`t install branch plugin you dont need volumes field
+  sonarqube:
+    privileged: true
+    image: sonarqube
+    restart: always
+    container_name: sonarqube
+    volumes:
+      - ./qube_plugins:/opt/sonarqube/extensions
+    networks:
+      - sonarnet
+    ports:
+      - "9000:9000"
+    environment:
+      - sonar.jdbc.url=jdbc:postgresql://db:5432/sonar
+      - sonar.jdbc.username=sonar
+      - sonar.jdbc.password=sonar
